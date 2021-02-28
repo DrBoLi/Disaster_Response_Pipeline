@@ -12,9 +12,9 @@ def load_data(messages_filepath, categories_filepath):
     :param categories_filepath: file path for categories data
     '''
     # load messages dataset
-    messages = pd.read_csv('messages_filepath')
+    messages = pd.read_csv(messages_filepath)
     # load categories dataset
-    categories = pd.read_csv('categories_filepath')
+    categories = pd.read_csv(categories_filepath)
     # merge datasets
     df = pd.merge(messages, categories, how = 'inner' , on = 'id')
 
@@ -32,7 +32,7 @@ def clean_data(df):
         - Remove duplicates
     '''
     # create a dataframe of the 36 individual category columns
-    categories = df['categories'].str.split(';', expand=True)
+    categories = pd.DataFrame(df.categories.str.split(';',expand=True))
     # select the first row of the categories dataframe
     row = categories.iloc[0,:]
     # use this row to extract a list of new column names for categories.
@@ -42,7 +42,7 @@ def clean_data(df):
     # rename the columns of `categories`
     categories.columns = category_colnames
     # set each value to be the last character of the string
-     for column in categories:
+    for column in categories:
         categories[column] = categories[column]\
             .astype(str).str.split('-').apply(lambda x:x[1])
     # convert column from string to numeric
