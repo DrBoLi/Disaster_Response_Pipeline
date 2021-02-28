@@ -1,24 +1,104 @@
 import sys
-
+import nltk
+nltk.download('punkt')
+nltk.download('wordnet')
+nltk.download('stopwords')
+nltk.download('averaged_perceptron_tagger')
+import numpy as np
+import pandas as pd
+from sqlalchemy import create_engine
+from nltk import word_tokenize
+from nltk.stem import WordNetLemmatizer
+from nltk.corpus import stopwords
+from sklearn.pipeline import Pipeline, FeatureUnion
+from sklearn.feature_extraction.text import CountVectorizer, TfidfTransformer
+from sklearn.ensemble import RandomForestClassifier, GradientBoostingClassifier
+from sklearn.multioutput import MultiOutputClassifier
+from sklearn.model_selection import train_test_split, GridSearchCV
+from sklearn.metrics import classification_report
+from sklearn.base import BaseEstimator, TransformerMixin
+import pickle
 
 def load_data(database_filepath):
-    pass
+    '''
+    Load data from database file path, output feature set, target and target categories
+
+    :param database_filepath: database file path
+    '''
+    # load data from database
+    engine = create_engine('sqlite:///'+database_filepath)
+    df = pd.read_sql_table('disaster_response',engine)
+    X = df['message']
+    Y = df.drop(columns=['id','message','original','genre'])
+
+    return X, Y, Y.columns
 
 
 def tokenize(text):
-    pass
+    '''
+    Tokenize, lemmatize, normalize, strip, remove stop words from the text
 
+    :param text: input text
+    '''
+    # Initialization
+    tokens = word_tokenize(text)
+    lemmatizer = WordNetLemmatizer()
+    stopWords = set(stopwords.words('english'))
+
+    # Get clean tokens after lemmatization, normalization, stripping and stop words removal
+    clean_tokens = []
+    for tok in tokens:
+        clean_tok = lemmatizer.lemmatize(tok).lower().strip()
+        if tok not in stopWords:
+            clean_tokens.append(clean_tok)
+
+    return clean_tokens
 
 def build_model():
-    pass
+    '''build pipeland, set parameter, do Gridsearch and return model'''
+    pipeline = Pipeline([
+        ('vect', CountVectorizer(tokenizer=tokenize)),
+        ('tfidf', TfidfTransformer()),
+        ('clf', MultiOutputClassifier(RandomForestClassifier()))
+    ])
+    # selected small set of parameters
+    parameters = {
+        'vect__max_df':[0.75,1.0],
+        'clf__estimator__n_estimators': [20, 50]
+    }
+
+    # Initialize GridSearch cross validation object
+    cv = GridSearchCV(pipeline, param_grid=parameters,n_jobs=-1)
+
+    return cv
 
 
 def evaluate_model(model, X_test, Y_test, category_names):
-    pass
+    '''
+    Evaluate the model performance of each category target column
 
+    :param model: model object
+    :param X_test: test feature set
+    :param Y_test: test target set
+    :param category_names: target category names
+    '''
+    # Use model to predict
+    Y_pred = model.predict(X_test)
+    # Turn prediction into DataFrame
+    Y_pred = pd.DataFrame(Y_pred,columns=category_names)
+    # For each category column, print performance
+    for ix, col in enumerate(category_names):
+        print(col)
+        print(classification_report(Y_test[col], Y_pred[:,ix]))
 
 def save_model(model, model_filepath):
-    pass
+    '''
+    Save model to a pickle file
+
+    :param model: model object
+    :param model_filepath: model output file path
+    '''
+    pickle.dump(model, model_filepath)
 
 
 def main():
@@ -27,13 +107,13 @@ def main():
         print('Loading data...\n    DATABASE: {}'.format(database_filepath))
         X, Y, category_names = load_data(database_filepath)
         X_train, X_test, Y_train, Y_test = train_test_split(X, Y, test_size=0.2)
-        
+
         print('Building model...')
         model = build_model()
-        
+
         print('Training model...')
         model.fit(X_train, Y_train)
-        
+
         print('Evaluating model...')
         evaluate_model(model, X_test, Y_test, category_names)
 
