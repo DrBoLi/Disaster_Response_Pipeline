@@ -2,10 +2,10 @@
 
 In this project, disaster messages data were collected from Figure Eight. I built a data pipeline that cleaned and train the machine learning model that categorizes emergency messages based on the needs communicated by sender. This data pipeline is connected to a web portal through API that can display the classification results. 
 
-[Table of Contents](#Table of Contents)
-[File Descriptions](#File Descriptions)
+[Table of Contents](#Table_of_Contents)
+[File Descriptions](#File_Descriptions)
 [Instructions](#Instructions)
-[Licensing, Authors, and Acknowledgements](#Licensing, Authors, and Acknowledgements)
+[Licensing, Authors, and Acknowledgements](#Licensing,_Authors,_and_Acknowledgements)
 
 ### File Descriptions:
 'process_data.py': A ETL Pipeline that
