@@ -27,11 +27,11 @@ def tokenize(text):
 
 
 # load data
-engine = create_engine('sqlite:///../data/YourDatabaseName.db')
-df = pd.read_sql_table('YourTableName', engine)
+engine = create_engine('sqlite:///../data/DisasterResponse.db')
+df = pd.read_sql_table('DisasterResponse.db', engine)
 
 # load model
-model = joblib.load("../models/your_model_name.pkl")
+model = joblib.load("../models/classifier.pkl")
 
 
 # index webpage displays cool visuals and receives user input text for model
@@ -40,12 +40,55 @@ model = joblib.load("../models/your_model_name.pkl")
 def index():
 
     # extract data needed for visuals
+    genre_counts = df.groupby('genre').count()['message']
+    genre_names = list(genre_counts.index)
+
+    # extract Top 5 categories
+    remove_col = ['id', 'message', 'original', 'genre']
+    y = df.loc[:, ~df.columns.isin(remove_col)]
+    category_counts = y.sum().sort_values().tail()
+    category_names = list(category_counts.index)
+
     category_labels = df.drop(columns=['id','message','original','genre']).sum(axis=1)
 
     # create visuals
     # TODO: Below is an example - modify to create your own visuals
     graphs = [
-         {
+        {
+            'data': [
+                Bar(
+                    x=genre_names,
+                    y=genre_counts
+                )
+            ],
+
+            'layout': {
+                'title': 'Distribution of Message Genres',
+                'yaxis': {
+                    'title': "Count"
+                },
+                'xaxis': {
+                    'title': "Genre"
+                }
+            }
+        },
+        {
+            'data': [
+                Bar(
+                    y=category_names,
+                    x=category_counts,
+                    orientation = 'h'
+                )
+            ],
+
+            'layout': {
+                'title': 'Top 5 Categories',
+                'xaxis': {
+                    'title': "Count"
+                }
+            }
+        },
+        {
             'data': [
                 Histogram(
                     x=category_labels
