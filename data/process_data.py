@@ -48,7 +48,7 @@ def clean_data(df):
         # convert column from string to numeric
         categories[column] = pd.to_numeric(categories[column])
     # drop the original categories column from 'df'
-    df.drop('categories', axis=1, inplace=True)
+    df.drop('categories', axis=1)
 
     # concatenate the original dataframe with the new 'categories' dataframe
     df = pd.concat([df, categories], axis=1)
@@ -56,7 +56,7 @@ def clean_data(df):
     # drop duplicates
     df.drop_duplicates(inplace=True)
     filtered = df[df['related']==2]
-    df = df.drop(filtered.index, inplace=True)
+    df = df.drop(filtered.index)
 
     return df
 
