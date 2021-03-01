@@ -41,18 +41,22 @@ def clean_data(df):
     category_colnames = row.str.split('-').apply(lambda x:x[0])
     # rename the columns of `categories`
     categories.columns = category_colnames
-    # set each value to be the last character of the string
     for column in categories:
-        categories[column] = categories[column]\
-            .astype(str).str.split('-').apply(lambda x:x[1])
-    # convert column from string to numeric
-    categories[column] = categories[column].astype(int)
-    # drop the original categories column from `df`
-    df = df.drop('categories',axis = 1, inplace=True)
-    # concatenate the original dataframe with the new `categories` dataframe
-    df = pd.concat([df,categories],axis=1)
+        # set each value to be the last character of the string
+        categories[column] = categories[column].apply(lambda x: x[-1:])
+
+        # convert column from string to numeric
+        categories[column] = pd.to_numeric(categories[column])
+    # drop the original categories column from 'df'
+    df.drop('categories', axis=1, inplace=True)
+
+    # concatenate the original dataframe with the new 'categories' dataframe
+    df = pd.concat([df, categories], axis=1)
+
     # drop duplicates
-    df = df.drop_duplicates(inplace=True)
+    df.drop_duplicates(inplace=True)
+    filtered = df[df['related']==2]
+    df = df.drop(filtered.index, inplace=True)
 
     return df
 
